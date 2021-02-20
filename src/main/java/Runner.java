@@ -1,4 +1,4 @@
-import image.Image;
+import image.ProcessImage;
 import nu.pattern.OpenCV;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -11,7 +11,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import static org.opencv.imgcodecs.Imgcodecs.imread;
 
@@ -23,7 +22,7 @@ class Runner {
         System.out.println("Hello world");
         OpenCV.loadLocally();
         String path = "src/main/resources/1.png";
-        Image tempImg = new Image();
+        ProcessImage tempImg = new ProcessImage();
         Mat img = imread(path);
         long start = System.currentTimeMillis();
         tempImg.process(img);

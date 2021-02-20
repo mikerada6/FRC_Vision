@@ -1,20 +1,12 @@
 package image;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import org.opencv.core.*;
+import org.opencv.imgproc.Imgproc;
+
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.HashMap;
-
-import org.opencv.core.*;
-import org.opencv.core.Core.*;
-//import org.opencv.features2d.FeatureDetector;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.*;
-import org.opencv.objdetect.*;
 
 /**
  * Image class.
@@ -23,7 +15,7 @@ import org.opencv.objdetect.*;
  *
  * @author GRIP
  */
-public class Image {
+public class ProcessImage {
 
     //Outputs
     private Mat hslThresholdOutput = new Mat();
@@ -70,6 +62,7 @@ public class Image {
 
     /**
      * This method is a generated getter for the output of a HSL_Threshold.
+     *
      * @return Mat output from HSL_Threshold.
      */
     public Mat hslThresholdOutput() {
@@ -78,6 +71,7 @@ public class Image {
 
     /**
      * This method is a generated getter for the output of a Find_Contours.
+     *
      * @return ArrayList<MatOfPoint> output from Find_Contours.
      */
     public ArrayList<MatOfPoint> findContoursOutput() {
@@ -86,6 +80,7 @@ public class Image {
 
     /**
      * This method is a generated getter for the output of a Filter_Contours.
+     *
      * @return ArrayList<MatOfPoint> output from Filter_Contours.
      */
     public ArrayList<MatOfPoint> filterContoursOutput() {
@@ -94,6 +89,7 @@ public class Image {
 
     /**
      * This method is a generated getter for the output of a Convex_Hulls.
+     *
      * @return ArrayList<MatOfPoint> output from Convex_Hulls.
      */
     public ArrayList<MatOfPoint> convexHullsOutput() {
@@ -104,25 +100,26 @@ public class Image {
     /**
      * Segment an image based on hue, saturation, and luminance ranges.
      *
-     * @param input The image on which to perform the HSL threshold.
-     * @param hue The min and max hue
-     * @param sat The min and max saturation
-     * @param lum The min and max luminance
+     * @param input  The image on which to perform the HSL threshold.
+     * @param hue    The min and max hue
+     * @param sat    The min and max saturation
+     * @param lum    The min and max luminance
      * @param output The image in which to store the output.
      */
     private void hslThreshold(Mat input, double[] hue, double[] sat, double[] lum,
                               Mat out) {
         Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HLS);
         Core.inRange(out, new Scalar(hue[0], lum[0], sat[0]),
-                     new Scalar(hue[1], lum[1], sat[1]), out);
+                new Scalar(hue[1], lum[1], sat[1]), out);
     }
 
     /**
      * Sets the values of pixels in a binary image to their distance to the nearest black pixel.
-     * @param input The image on which to perform the Distance Transform.
-     * @param type The Transform.
+     *
+     * @param input    The image on which to perform the Distance Transform.
+     * @param type     The Transform.
      * @param maskSize the size of the mask.
-     * @param output The image in which to store the output.
+     * @param output   The image in which to store the output.
      */
     private void findContours(Mat input, boolean externalOnly,
                               List<MatOfPoint> contours) {
@@ -131,8 +128,7 @@ public class Image {
         int mode;
         if (externalOnly) {
             mode = Imgproc.RETR_EXTERNAL;
-        }
-        else {
+        } else {
             mode = Imgproc.RETR_LIST;
         }
         int method = Imgproc.CHAIN_APPROX_SIMPLE;
@@ -142,19 +138,20 @@ public class Image {
 
     /**
      * Filters out contours that do not meet certain criteria.
-     * @param inputContours is the input list of contours
-     * @param output is the the output list of contours
-     * @param minArea is the minimum area of a contour that will be kept
-     * @param minPerimeter is the minimum perimeter of a contour that will be kept
-     * @param minWidth minimum width of a contour
-     * @param maxWidth maximum width
-     * @param minHeight minimum height
-     * @param maxHeight maximimum height
-     * @param Solidity the minimum and maximum solidity of a contour
+     *
+     * @param inputContours  is the input list of contours
+     * @param output         is the the output list of contours
+     * @param minArea        is the minimum area of a contour that will be kept
+     * @param minPerimeter   is the minimum perimeter of a contour that will be kept
+     * @param minWidth       minimum width of a contour
+     * @param maxWidth       maximum width
+     * @param minHeight      minimum height
+     * @param maxHeight      maximimum height
+     * @param Solidity       the minimum and maximum solidity of a contour
      * @param minVertexCount minimum vertex Count of the contours
      * @param maxVertexCount maximum vertex Count
-     * @param minRatio minimum ratio of width to height
-     * @param maxRatio maximum ratio of width to height
+     * @param minRatio       minimum ratio of width to height
+     * @param maxRatio       maximum ratio of width to height
      */
     private void filterContours(List<MatOfPoint> inputContours, double minArea,
                                 double minPerimeter, double minWidth, double maxWidth, double minHeight, double
@@ -175,14 +172,14 @@ public class Image {
             MatOfPoint mopHull = new MatOfPoint();
             mopHull.create((int) hull.size().height, 1, CvType.CV_32SC2);
             for (int j = 0; j < hull.size().height; j++) {
-                int index = (int)hull.get(j, 0)[0];
-                double[] point = new double[] { contour.get(index, 0)[0], contour.get(index, 0)[1]};
+                int index = (int) hull.get(j, 0)[0];
+                double[] point = new double[]{contour.get(index, 0)[0], contour.get(index, 0)[1]};
                 mopHull.put(j, 0, point);
             }
             final double solid = 100 * area / Imgproc.contourArea(mopHull);
             if (solid < solidity[0] || solid > solidity[1]) continue;
-            if (contour.rows() < minVertexCount || contour.rows() > maxVertexCount)	continue;
-            final double ratio = bb.width / (double)bb.height;
+            if (contour.rows() < minVertexCount || contour.rows() > maxVertexCount) continue;
+            final double ratio = bb.width / (double) bb.height;
             if (ratio < minRatio || ratio > maxRatio) continue;
             output.add(contour);
         }
@@ -190,7 +187,8 @@ public class Image {
 
     /**
      * Compute the convex hulls of contours.
-     * @param inputContours The contours on which to perform the operation.
+     *
+     * @param inputContours  The contours on which to perform the operation.
      * @param outputContours The contours where the output will be stored.
      */
     private void convexHulls(List<MatOfPoint> inputContours,
@@ -204,50 +202,123 @@ public class Image {
             mopHull.create((int) hull.size().height, 1, CvType.CV_32SC2);
             for (int j = 0; j < hull.size().height; j++) {
                 int index = (int) hull.get(j, 0)[0];
-                double[] point = new double[] {contour.get(index, 0)[0], contour.get(index, 0)[1]};
+                double[] point = new double[]{contour.get(index, 0)[0], contour.get(index, 0)[1]};
                 mopHull.put(j, 0, point);
             }
             outputContours.add(mopHull);
         }
     }
 
-    public
-    Mat getHslThresholdOutput() {
+    public Mat getHslThresholdOutput() {
         return hslThresholdOutput;
     }
 
-    public
-    void setHslThresholdOutput(Mat hslThresholdOutput) {
+    public void setHslThresholdOutput(Mat hslThresholdOutput) {
         this.hslThresholdOutput = hslThresholdOutput;
     }
 
-    public
-    ArrayList<MatOfPoint> getFindContoursOutput() {
+    public ArrayList<MatOfPoint> getFindContoursOutput() {
         return findContoursOutput;
     }
 
-    public
-    void setFindContoursOutput(ArrayList<MatOfPoint> findContoursOutput) {
+    public void setFindContoursOutput(ArrayList<MatOfPoint> findContoursOutput) {
         this.findContoursOutput = findContoursOutput;
     }
 
-    public
-    ArrayList<MatOfPoint> getFilterContoursOutput() {
+    public ArrayList<MatOfPoint> getFilterContoursOutput() {
         return filterContoursOutput;
     }
 
-    public
-    void setFilterContoursOutput(ArrayList<MatOfPoint> filterContoursOutput) {
+    public void setFilterContoursOutput(ArrayList<MatOfPoint> filterContoursOutput) {
         this.filterContoursOutput = filterContoursOutput;
     }
 
-    public
-    ArrayList<MatOfPoint> getConvexHullsOutput() {
+    public ArrayList<MatOfPoint> getConvexHullsOutput() {
         return convexHullsOutput;
     }
 
-    public
-    void setConvexHullsOutput(ArrayList<MatOfPoint> convexHullsOutput) {
+    public void setConvexHullsOutput(ArrayList<MatOfPoint> convexHullsOutput) {
         this.convexHullsOutput = convexHullsOutput;
     }
+
+    public Mat drawRectoangles(Mat mat, boolean drawCenter) {
+        for (int i = 0; i < convexHullsOutput().size(); i++) {
+            Double minX = Double.MAX_VALUE;
+            Double maxX = Double.MIN_VALUE;
+            Double minY = Double.MAX_VALUE;
+            Double maxY = Double.MIN_VALUE;
+
+            for (Point p : convexHullsOutput.get(i).toArray()) {
+                if (p.x < minX)
+                    minX = p.x;
+                if (p.x > maxX)
+                    maxX = p.x;
+                if (p.y < minY)
+                    minY = p.y;
+                if (p.y > maxY)
+                    maxY = p.y;
+            }
+
+            double centerX = (maxX + minX) / 2;
+            double centerY = (maxY + minY) / 2;
+
+
+            Imgproc.rectangle(mat,
+                    new Point(minX,
+                            minY),
+                    new Point(maxX,
+                            maxY),
+                    new Scalar(0,
+                            0,
+                            255),
+//Scalar object for color
+                    5
+//Thickness of the line
+            );
+            if(drawCenter)
+            {
+                Imgproc.circle(mat,
+                        //Matrix obj of the image
+                        new Point(centerX,
+                                centerY),
+                        //Center of the circle
+                        8,
+                        //Radius
+                        new Scalar(0,
+                                255,
+                                0),
+                        //Scalar object for color
+                        4);
+                        //Thickness of the circle
+            }
+        }
+        return mat;
+    }
+
+    public BufferedImage Mat2BufferedImage(Mat m) {
+        //source: http://answers.opencv.org/question/10344/opencv-java-load-image-to-gui/
+        //Fastest code
+        //The output can be assigned either to a BufferedImage or to an Image
+
+        int type = BufferedImage.TYPE_BYTE_GRAY;
+        if (m.channels() > 1) {
+            type = BufferedImage.TYPE_3BYTE_BGR;
+        }
+        int bufferSize = m.channels() * m.cols() * m.rows();
+        byte[] b = new byte[bufferSize];
+        m.get(0,
+                0,
+                b); // get all the pixels
+        BufferedImage image = new BufferedImage(m.cols(),
+                m.rows(),
+                type);
+        final byte[] targetPixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+        System.arraycopy(b,
+                0,
+                targetPixels,
+                0,
+                b.length);
+        return image;
+    }
+
 }
